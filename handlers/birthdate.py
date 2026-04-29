@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, BufferedInputFile
 
 from database import async_session, update_user_numerology
 from numerology import (
@@ -10,8 +10,8 @@ from numerology import (
     get_belova_description,
     calculate_psychomatrix,
     get_psychomatrix_summary,
-    format_psychomatrix_table,
     psychomatrix_to_json,
+    generate_psychomatrix_image,
 )
 from keyboards import get_main_menu
 
@@ -53,8 +53,11 @@ async def handle_birthdate(message: Message):
 
     psycho_counts = calculate_psychomatrix(day, month, year)
     psycho_summary = get_psychomatrix_summary(psycho_counts)
-    psycho_table = format_psychomatrix_table(psycho_counts)
     psycho_json = psychomatrix_to_json(psycho_counts)
+
+    # Генерируем картинку
+    image_buf = generate_psychomatrix_image(psycho_counts, date_str, belova_number)
+    photo = BufferedInputFile(image_buf.read(), filename="psychomatrix.png")
 
     # Сохраняем в БД
     async with async_session() as session:
@@ -66,7 +69,7 @@ async def handle_birthdate(message: Message):
             psychomatrix=psycho_json,
         )
 
-    # Формируем ответ — часть 1: число по Беловой
+    # Часть 1: число по Беловой
     await message.answer(
         f"🔢 *Твоё число по системе Беловой: {belova_number}*\n"
         f"_{desc['title']}_\n\n"
@@ -75,11 +78,10 @@ async def handle_birthdate(message: Message):
         parse_mode="Markdown",
     )
 
-    # Часть 2: психоматрица
-    await message.answer(
-        f"🔲 *Психоматрица (квадрат Пифагора)*\n\n"
-        f"{psycho_table}\n\n"
-        f"{psycho_summary}",
+    # Часть 2: психоматрица картинкой
+    await message.answer_photo(
+        photo=photo,
+        caption=f"🔲 *Психоматрица (квадрат Пифагора)*\n\n{psycho_summary}",
         parse_mode="Markdown",
     )
 
