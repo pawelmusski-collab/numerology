@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, String, Boolean, DateTime, Integer
+from sqlalchemy import BigInteger, String, Boolean, DateTime, Integer, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
 
@@ -10,13 +10,13 @@ class Base(DeclarativeBase):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)  # Telegram user ID
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     first_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    birth_date: Mapped[str | None] = mapped_column(String(10), nullable=True)  # DD.MM.YYYY
+    birth_date: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
     belova_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    psychomatrix: Mapped[str | None] = mapped_column(String(512), nullable=True)  # JSON string
+    psychomatrix: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     is_paid: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -30,5 +30,6 @@ class Booking(Base):
     user_id: Mapped[int] = mapped_column(BigInteger)
     preferred_time: Mapped[str | None] = mapped_column(String(256), nullable=True)
     contact_info: Mapped[str | None] = mapped_column(String(256), nullable=True)
-    status: Mapped[str] = mapped_column(String(32), default="pending")  # pending, confirmed, done
+    client_question: Mapped[str | None] = mapped_column(Text, nullable=True)  # ← новое поле
+    status: Mapped[str] = mapped_column(String(32), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
