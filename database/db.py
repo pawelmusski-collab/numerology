@@ -7,7 +7,6 @@ async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit
 
 
 async def init_db():
-    """Create all tables on startup."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -27,6 +26,14 @@ async def get_or_create_user(session: AsyncSession, user_id: int, username: str 
     return user
 
 
+async def get_user(session: AsyncSession, user_id: int):
+    from sqlalchemy import select
+    from database.models import User
+
+    result = await session.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
+
+
 async def update_user_numerology(session: AsyncSession, user_id: int, birth_date: str,
                                   belova_number: int, psychomatrix: str):
     from sqlalchemy import select
@@ -44,18 +51,16 @@ async def update_user_numerology(session: AsyncSession, user_id: int, birth_date
     return user
 
 
-async def create_booking(session: AsyncSession, user_id: int, preferred_time: str, contact_info: str):
+async def create_booking(session: AsyncSession, user_id: int, preferred_time: str,
+                          contact_info: str, client_question: str | None = None):
     from database.models import Booking
 
-    booking = Booking(user_id=user_id, preferred_time=preferred_time, contact_info=contact_info)
+    booking = Booking(
+        user_id=user_id,
+        preferred_time=preferred_time,
+        contact_info=contact_info,
+        client_question=client_question,
+    )
     session.add(booking)
     await session.commit()
     return booking
-
-
-async def get_user(session: AsyncSession, user_id: int):
-    from sqlalchemy import select
-    from database.models import User
-
-    result = await session.execute(select(User).where(User.id == user_id))
-    return result.scalar_one_or_none()
