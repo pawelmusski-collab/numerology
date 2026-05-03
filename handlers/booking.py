@@ -15,6 +15,7 @@ router = Router()
 class BookingStates(StatesGroup):
     waiting_for_time = State()
     waiting_for_contact = State()
+    waiting_for_question = State()  # ← новый шаг
     confirming = State()
 
 
@@ -57,16 +58,41 @@ async def cb_select_time(callback: CallbackQuery, state: FSMContext):
 @router.message(BookingStates.waiting_for_contact)
 async def handle_contact(message: Message, state: FSMContext):
     contact = message.text.strip()
+    await state.update_data(contact_info=contact)
+    await state.set_state(BookingStates.waiting_for_question)
+
+    await message.answer(
+        "💬 *Есть вопрос к специалисту?*\n\n"
+        "Напиши один вопрос, который хочешь разобрать на консультации.\n"
+        "Специалист придёт подготовленным 🙂\n\n"
+        "_(Если вопроса пока нет — напиши_ «нет» _или_ «—»_)_",
+        parse_mode="Markdown",
+        reply_markup=get_cancel_menu(),
+    )
+
+
+@router.message(BookingStates.waiting_for_question)
+async def handle_question(message: Message, state: FSMContext):
+    question = message.text.strip()
     data = await state.get_data()
     preferred_time = data.get("preferred_time", "Не указано")
+    contact_info = data.get("contact_info", "Не указано")
 
-    await state.update_data(contact_info=contact)
+    # Нормализуем «нет вопроса»
+    no_question_phrases = {"нет", "—", "-", ".", "no", "нет вопроса", "пока нет"}
+    if question.lower() in no_question_phrases:
+        question = None
+
+    await state.update_data(client_question=question)
     await state.set_state(BookingStates.confirming)
+
+    question_line = f"❓ *Вопрос:* {question}" if question else "❓ *Вопрос:* не указан"
 
     await message.answer(
         "📋 *Проверь данные записи:*\n\n"
         f"🕐 Удобное время: *{preferred_time}*\n"
-        f"📱 Контакт: *{contact}*\n\n"
+        f"📱 Контакт: *{contact_info}*\n"
+        f"{question_line}\n\n"
         "Всё верно?",
         parse_mode="Markdown",
         reply_markup=get_confirm_booking_menu(),
@@ -78,6 +104,7 @@ async def cb_confirm_booking(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     preferred_time = data.get("preferred_time", "Не указано")
     contact_info = data.get("contact_info", "Не указано")
+    client_question = data.get("client_question")
     tg_user = callback.from_user
 
     # Сохраняем запись в БД
@@ -87,20 +114,19 @@ async def cb_confirm_booking(callback: CallbackQuery, state: FSMContext):
             user_id=tg_user.id,
             preferred_time=preferred_time,
             contact_info=contact_info,
+            client_question=client_question,
         )
-        # Достаём данные пользователя из БД
         db_user = await get_user(session, tg_user.id)
 
     await state.clear()
 
     # Отправляем специалисту карточку клиента
     try:
-        # Формируем текст карточки
         name = f"{tg_user.first_name or ''} {tg_user.last_name or ''}".strip() or "Не указано"
         username = f"@{tg_user.username}" if tg_user.username else "нет username"
-
         belova = db_user.belova_number if db_user else "—"
         birth = db_user.birth_date if db_user else "—"
+        question_line = f"❓ *Вопрос клиента:* {client_question}" if client_question else "❓ *Вопрос клиента:* не указан"
 
         card_text = (
             f"🔔 *Новая запись на консультацию!*\n\n"
@@ -108,13 +134,13 @@ async def cb_confirm_booking(callback: CallbackQuery, state: FSMContext):
             f"📎 *Telegram:* {username}\n"
             f"🆔 *ID:* `{tg_user.id}`\n"
             f"📱 *Контакт:* {contact_info}\n"
-            f"🕐 *Удобное время:* {preferred_time}\n\n"
+            f"🕐 *Удобное время:* {preferred_time}\n"
+            f"{question_line}\n\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"📅 *Дата рождения:* {birth}\n"
             f"🔢 *Число Беловой:* {belova}\n"
         )
 
-        # Если есть психоматрица — отправляем картинкой
         if db_user and db_user.psychomatrix and db_user.birth_date and db_user.belova_number:
             try:
                 counts = {int(k): v for k, v in json.loads(db_user.psychomatrix).items()}
@@ -127,15 +153,13 @@ async def cb_confirm_booking(callback: CallbackQuery, state: FSMContext):
                     parse_mode="Markdown",
                 )
             except Exception:
-                # Если картинка не получилась — шлём только текст
                 await callback.bot.send_message(ADMIN_ID, card_text, parse_mode="Markdown")
         else:
             await callback.bot.send_message(ADMIN_ID, card_text, parse_mode="Markdown")
 
     except Exception:
-        pass  # Не прерываем флоу если уведомление не дошло
+        pass
 
-    # Отвечаем клиенту
     await callback.message.answer(
         "🎉 *Запись оформлена!*\n\n"
         "Специалист свяжется с тобой по указанному контакту в ближайшее время.\n\n"
