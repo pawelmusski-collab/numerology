@@ -51,3 +51,11 @@ async def create_booking(session: AsyncSession, user_id: int, preferred_time: st
     session.add(booking)
     await session.commit()
     return booking
+
+
+async def get_user(session: AsyncSession, user_id: int):
+    from sqlalchemy import select
+    from database.models import User
+
+    result = await session.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
