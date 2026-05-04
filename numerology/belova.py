@@ -109,7 +109,7 @@ BELOVA_DESCRIPTIONS = {
 
 def calculate_belova_number(day: int, month: int, year: int) -> int:
     """
-    Складываем все цифры даты рождения.
+    Система вой: складываем все цифры даты рождения.
     Мастер-числа 11 и 22 не редуцируются.
     """
     digits = str(day) + str(month) + str(year)
