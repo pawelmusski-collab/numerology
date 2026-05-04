@@ -92,7 +92,7 @@ def generate_psychomatrix_image(counts: dict, birth_date: str, belova_number: in
     # Заголовок
     draw.text((W // 2, 22), "Психоматрица (квадрат Пифагора)",
               font=font_title, fill=TITLE_COLOR, anchor="mm")
-    draw.text((W // 2, 52), f"Дата рождения: {birth_date}  •  Число Беловой: {belova_number}",
+    draw.text((W // 2, 52), f"Дата рождения: {birth_date}  •  Нумерологическое число: {belova_number}",
               font=font_subtitle, fill=SUBTITLE_COLOR, anchor="mm")
     draw.line([(40, 72), (W - 40, 72)], fill=BORDER_COLOR, width=1)
 
