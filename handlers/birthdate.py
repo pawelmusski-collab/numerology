@@ -71,7 +71,7 @@ async def handle_birthdate(message: Message):
 
     # Часть 1: число по Беловой
     await message.answer(
-        f"🔢 *Твоё число по системе Беловой: {belova_number}*\n"
+        f"🔢 *Твоё нумерологическое число: {belova_number}*\n"
         f"_{desc['title']}_\n\n"
         f"{desc['short']}\n\n"
         f"🏷 Ключевые слова: _{desc['keywords']}_",
