@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
-DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+DATABASE_URL: str = os.getenv("DATABASE_URL", "").replace(
+    "postgresql://", "postgresql+asyncpg://", 1
+)
 SPECIALIST_USERNAME: str = os.getenv("SPECIALIST_USERNAME", "@specialist")
 ADMIN_ID: int = int(os.getenv("ADMIN_ID", "0"))
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
