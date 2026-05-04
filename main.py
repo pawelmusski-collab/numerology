@@ -8,7 +8,7 @@ from aiogram.enums import ParseMode
 
 from config import BOT_TOKEN
 from database import init_db
-from handlers import start_router, birthdate_router, booking_router
+from handlers import start_router, birthdate_router, booking_router, ai_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 async def main():
     logger.info("Starting numerology bot...")
-
-    # Инициализируем БД
     await init_db()
     logger.info("Database initialized.")
 
@@ -30,11 +28,10 @@ async def main():
     )
 
     dp = Dispatcher(storage=MemoryStorage())
-
-    # Регистрируем роутеры
     dp.include_router(start_router)
     dp.include_router(birthdate_router)
     dp.include_router(booking_router)
+    dp.include_router(ai_router)
 
     logger.info("Bot is polling...")
     await dp.start_polling(bot, drop_pending_updates=True)
