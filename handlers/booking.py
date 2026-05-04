@@ -138,7 +138,7 @@ async def cb_confirm_booking(callback: CallbackQuery, state: FSMContext):
             f"{question_line}\n\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"📅 *Дата рождения:* {birth}\n"
-            f"🔢 *Число Беловой:* {belova}\n"
+            f"🔢 *Число:* {belova}\n"
         )
 
         if db_user and db_user.psychomatrix and db_user.birth_date and db_user.belova_number:
