@@ -3,6 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 def get_main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🤖 Поговорить с ИИ", callback_data="talk_to_ai")],
         [InlineKeyboardButton(text="📅 Записаться к специалисту", callback_data="book_specialist")],
         [InlineKeyboardButton(text="🔄 Рассчитать другую дату", callback_data="recalculate")],
     ])
@@ -28,4 +29,19 @@ def get_confirm_booking_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="✅ Подтвердить запись", callback_data="confirm_booking")],
         [InlineKeyboardButton(text="✏️ Изменить время", callback_data="book_specialist")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_booking")],
+    ])
+
+
+def get_ai_end_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📅 Записаться к специалисту", callback_data="book_specialist")],
+        [InlineKeyboardButton(text="🚪 Завершить разговор", callback_data="ai_end")],
+    ])
+
+
+def get_ai_confirm_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Да, всё верно", callback_data="ai_confirm_request")],
+        [InlineKeyboardButton(text="✏️ Уточнить формулировку", callback_data="ai_rephrase")],
+        [InlineKeyboardButton(text="📅 Записаться к специалисту", callback_data="book_specialist")],
     ])
