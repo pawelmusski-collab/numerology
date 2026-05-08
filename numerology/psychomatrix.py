@@ -1,9 +1,4 @@
-"""
-Психоматрица (квадрат Пифагора) — классическая нумерологическая таблица 3x3.
-Расчёт: из даты рождения извлекаем рабочие числа, считаем кол-во каждой цифры 1-9.
-"""
 import json
-
 
 CELL_MEANINGS = {
     1: {"name": "Характер / Воля", "low": "Мягкий, уступчивый", "mid": "Целеустремлённый", "high": "Волевой, упрямый"},
@@ -17,6 +12,7 @@ CELL_MEANINGS = {
     9: {"name": "Память / Интеллект", "low": "Практический ум", "mid": "Хорошая память", "high": "Феноменальная память"},
 }
 
+# Исправленный порядок строк: 1-4-7 / 2-5-8 / 3-6-9
 MATRIX_LAYOUT = [
     [1, 4, 7],
     [2, 5, 8],
@@ -24,80 +20,57 @@ MATRIX_LAYOUT = [
 ]
 
 
-def _get_working_numbers(day: int, month: int, year: int) -> list[int]:
-    """Вычисляем рабочие числа для психоматрицы."""
+def calculate_numbers(day: int, month: int, year: int) -> dict:
+    """Считает все числа: метацикл, базовое, икс, коммуникативное, уровень души."""
     dob = f"{day:02d}{month:02d}{year}"
-    first_sum = sum(int(d) for d in dob)
-
-    # Редуцируем до однозначного
-    second_sum = sum(int(d) for d in str(first_sum))
-    if first_sum > 9:
-        second_sum = sum(int(d) for d in str(first_sum))
-    else:
-        second_sum = first_sum
-
-    third_sum = first_sum - 2 * int(str(day)[0]) if day >= 10 else first_sum - 2 * day
-    fourth_sum = sum(int(d) for d in str(third_sum))
-
-    return [day, month, year, first_sum, second_sum, third_sum, fourth_sum]
+    metacycle = sum(int(d) for d in dob)          # двузначное (или однозначное)
+    base = sum(int(d) for d in str(metacycle))    # сумма цифр метацикла
+    first_digit_of_day = int(str(day)[0])
+    x_number = metacycle - 2 * first_digit_of_day
+    communicative = sum(int(d) for d in str(x_number)) if x_number > 0 else 0
+    soul_level = base + communicative
+    return {
+        "metacycle": metacycle,
+        "base": base,
+        "x_number": x_number,
+        "communicative": communicative,
+        "soul_level": soul_level,
+    }
 
 
 def calculate_psychomatrix(day: int, month: int, year: int) -> dict:
-    """Считаем кол-во каждой цифры 1-9 в рабочих числах."""
-    numbers = _get_working_numbers(day, month, year)
-    all_digits = "".join(str(n) for n in numbers)
+    """Считаем кол-во каждой цифры 1-9 во всех рабочих числах включая новые."""
+    nums = calculate_numbers(day, month, year)
+    metacycle = nums["metacycle"]
+    base = nums["base"]
+    x_number = nums["x_number"]
+    communicative = nums["communicative"]
+
+    # Рабочие числа для матрицы: дата + метацикл + базовое + икс + коммуникативное
+    all_digits = f"{day:02d}{month:02d}{year}{metacycle}{base}{x_number}{communicative}"
 
     counts = {i: 0 for i in range(1, 10)}
     for ch in all_digits:
         digit = int(ch)
         if 1 <= digit <= 9:
             counts[digit] += 1
-
     return counts
 
 
 def get_psychomatrix_summary(counts: dict) -> str:
-    """Краткое описание сильных и слабых сторон по психоматрице."""
-    strong = []
-    weak = []
-
+    strong, weak = [], []
     for digit, count in counts.items():
-        meaning = CELL_MEANINGS[digit]
+        m = CELL_MEANINGS[digit]
         if count >= 3:
-            strong.append(f"• {meaning['name']}: {meaning['high']}")
+            strong.append(f"• {m['name']}: {m['high']}")
         elif count == 0:
-            weak.append(f"• {meaning['name']}: {meaning['low']}")
-
+            weak.append(f"• {m['name']}: {m['low']}")
     result = ""
     if strong:
         result += "💪 *Сильные стороны:*\n" + "\n".join(strong) + "\n\n"
     if weak:
         result += "🔮 *Зоны роста:*\n" + "\n".join(weak)
-
-    if not result:
-        result = "Гармоничная психоматрица — все качества развиты в меру."
-
-    return result
-
-
-def format_psychomatrix_table(counts: dict) -> str:
-    """Красивая текстовая матрица 3x3."""
-    def cell(digit: int) -> str:
-        c = counts[digit]
-        return str(digit) * c if c > 0 else "·"
-
-    rows = []
-    for row in MATRIX_LAYOUT:
-        rows.append("│ " + " │ ".join(f"{cell(d):^5}" for d in row) + " │")
-
-    separator = "├" + "───────┼" * 2 + "───────┤"
-    top = "┌" + "───────┬" * 2 + "───────┐"
-    bottom = "└" + "───────┴" * 2 + "───────┘"
-
-    header = "│  3/9  │  6/5  │  9/7  │"
-
-    table = f"`{top}\n{rows[0]}\n{separator}\n{rows[1]}\n{separator}\n{rows[2]}\n{bottom}`"
-    return table
+    return result or "Гармоничная психоматрица — все качества развиты в меру."
 
 
 def psychomatrix_to_json(counts: dict) -> str:
