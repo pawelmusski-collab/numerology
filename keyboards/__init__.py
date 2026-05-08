@@ -1,17 +1,11 @@
 from .menus import (
-    get_main_menu,
-    get_booking_time_menu,
-    get_cancel_menu,
-    get_confirm_booking_menu,
-    get_ai_end_menu,
-    get_ai_confirm_menu,
+    get_main_menu, get_after_matrix_menu, get_book_menu,
+    get_booking_time_menu, get_cancel_menu, get_confirm_booking_menu,
+    get_ai_end_menu, get_ai_confirm_menu,
 )
 
 __all__ = [
-    "get_main_menu",
-    "get_booking_time_menu",
-    "get_cancel_menu",
-    "get_confirm_booking_menu",
-    "get_ai_end_menu",
-    "get_ai_confirm_menu",
+    "get_main_menu", "get_after_matrix_menu", "get_book_menu",
+    "get_booking_time_menu", "get_cancel_menu", "get_confirm_booking_menu",
+    "get_ai_end_menu", "get_ai_confirm_menu",
 ]
