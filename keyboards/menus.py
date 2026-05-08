@@ -9,6 +9,20 @@ def get_main_menu() -> InlineKeyboardMarkup:
     ])
 
 
+def get_after_matrix_menu() -> InlineKeyboardMarkup:
+    """Кнопка совместимости появляется под психоматрицей."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💑 Совместимость", callback_data="compatibility")],
+    ])
+
+
+def get_book_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📅 Записаться к специалисту", callback_data="book_specialist")],
+        [InlineKeyboardButton(text="🔄 Рассчитать другую дату", callback_data="recalculate")],
+    ])
+
+
 def get_booking_time_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🌅 Утро (9:00–12:00)", callback_data="time_morning")],
